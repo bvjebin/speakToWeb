@@ -26,7 +26,7 @@ var speakToWeb = (function() {
     var options = { //external options
         keys: ["ctrlKey", 90],
         key: "control z",
-        language: "en-IN",
+        language: "en-GB",
         showPanel: true,
         panelContainer: "#results" + uuid,
     };
@@ -42,6 +42,7 @@ var speakToWeb = (function() {
         require(
             ["speak/speaker", "recognition/recognition", "command/commandController", "utils/utils", ], function(Speaker, Recognition, CommandController) {
                 speakToWeb.speaker = Speaker; //Speech library wrapper
+                speakToWeb.speaker.options = options;
                 recognition = new Recognition(options);
                 recognition.init();
                 commandController = new CommandController(options);
@@ -53,7 +54,7 @@ var speakToWeb = (function() {
                 }
                 //_this.giveCommand("buddy");
                 document.addEventListener("recognitionStart", function(e) {
-                    speakToWeb.speaker("Hey! I am Jarvis. I'm here to help you.!");
+                    speakToWeb.speaker("Hey! I am Jarvis. I'm here to help you!");
                 }, false);
                 document.addEventListener("recognitionEnd", function(e) {
                     speakToWeb.speaker("Oh! Speech Recognition is down. Restart speach recognition by pressing ctrl z!");
@@ -101,4 +102,7 @@ var speakToWeb = (function() {
 })();
 $(document).ready(function($) {
     speakToWeb.init();
+    window.onhashchange = function() {
+      speakToWeb.giveCommand(location.hash.replace("#", ""));
+    };
 });

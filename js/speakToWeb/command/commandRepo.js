@@ -54,21 +54,9 @@ define(["utils/utils"], function(utils) {
             };
         };
         this.commandList = [{
-            id: "go_to_link",
+            id: "go_to",
             category: this.commandCategory.NAVIGATION,
-            command: "go to link"
-        }, {
-            id: "go_to_form",
-            category: this.commandCategory.NAVIGATION,
-            command: "go to form"
-        }, {
-            id: "go_to_field",
-            category: this.commandCategory.NAVIGATION,
-            command: "go to field"
-        }, {
-            id: "go_to_combobox",
-            category: this.commandCategory.NAVIGATION,
-            command: "go to combo box"
+            command: "go to"
         }, {
             id: "open_link",
             category: this.commandCategory.NAVIGATION,
@@ -149,7 +137,7 @@ define(["utils/utils"], function(utils) {
             id: "scroll_top",
             category: this.commandCategory.ACTION,
             command: "scroll top",
-            aliases: ["move top", "top", "go to top"]
+            aliases: ["move top", "top"]
         }, {
             id: "scroll_down",
             category: this.commandCategory.ACTION,
@@ -158,7 +146,7 @@ define(["utils/utils"], function(utils) {
         }, {
             id: "scroll_last",
             category: this.commandCategory.ACTION,
-            aliases: ["move last", "last", "go to last"],
+            aliases: ["move last", "last"],
             command: "scroll last"
         }];
     };

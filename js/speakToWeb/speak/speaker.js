@@ -4,15 +4,33 @@
 	Description: Speaks the text with options provided
 */
 
-define(/*["speak/speakClient"],*/function() {
-	function Speaker(text, options) {
-		//speak(text, options);
-		this.speechUtterence = this.speechUtterence || new SpeechSynthesisUtterance(text);
-		this.speechUtterence.voice = window.speechSynthesis.getVoices()[1];
-		this.speechUtterence.text = text;
-		window.speechSynthesis.speak(this.speechUtterence);
+define( ["speak/speakClient"], function() {
+	function Speaker(text) {
+		//speak(text);
+		if(!Speaker.voicesAvailable) {
+			var watch = setInterval(function() {
+				Speaker.voicesAvailable = speechSynthesis.getVoices();
+				if (Speaker.voicesAvailable.length !== 0) {
+					clearInterval(watch);
+					speak();
+				}
+			}, 1);
+			return false;
+		}
+		speak();
+		function speak() {
+			Speaker.speechUtterence = Speaker.speechUtterence || new SpeechSynthesisUtterance(text);
+			Speaker.speechUtterence.voice = Speaker.voicesAvailable[1];
+			Speaker.speechUtterence.text = text;
+			Speaker.speechUtterence.lang = Speaker.options.language;
+			Speaker.speechUtterence.volume = 5;
+			Speaker.speechUtterence.onerror = function(e) {
+				console.error(e);
+			}
+			window.speechSynthesis.speak(Speaker.speechUtterence);
+		}
 
-		return this;
+		return Speaker;
 	}
 	return Speaker;
 });

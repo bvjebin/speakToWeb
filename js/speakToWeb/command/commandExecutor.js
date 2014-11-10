@@ -19,9 +19,10 @@ define(["utils/utils", "context/contextManager"], function(utils, ContextManager
 
 				if(anchors.length || buttons.length || labels.length || selects.length) {
 					if(anchors.length+buttons.length+labels.length+selects.length > 1) {
-
+						//say ambiguity
+						//set in context
 					} else {
-
+						return doAction();
 					}
 				} else {
 					return textKeeper.textConstants.INVALID;
@@ -29,8 +30,36 @@ define(["utils/utils", "context/contextManager"], function(utils, ContextManager
 				function doAction() {
 					if(anchors.length) {
 						window.location.href = $(anchors).attr('href');
+						var win = window.open($(anchors).attr('href'), '_blank');
+  						win.focus();
+						_this.commandHash.speakerText = "Link opened in a new tab";
+					} else if(buttons.length) {
+						$(buttons).focus();
+						_this.commandHash.speakerText = "Focussed on button "+command;
+					} else if(selects.length) {
+						$(selects).focus();
+						_this.commandHash.speakerText = "Focussed on combo box "+command;
 					}
-
+					
+					return textKeeper.textConstants.KEEP_QUIET;
+				}
+			},
+			go_to: function() {
+				var rest_of_the_command = getNeedle(_this.commandHash.command),
+					linkIndex = rest_of_the_command.indexOf("link"),
+					fieldIndex = rest_of_the_command.indexOf("field"),
+					formIndex = rest_of_the_command.indexOf("form"),
+					comboIndex = rest_of_the_command.indexOf("combo");
+				if(linkIndex > 0) {
+					this.go_to_link();
+				} else if(fieldIndex > 0) {
+					this.go_to_field();
+				} else if(formIndex > 0) {
+					this.go_to_form();
+				} else if(comboIndex > 0) {
+					this.go_to_combobox();
+				} else {
+					this.orphan_command_real();
 				}
 			},
 			go_to_link: function() {
@@ -100,6 +129,54 @@ define(["utils/utils", "context/contextManager"], function(utils, ContextManager
 					}
 				} else {
 					setContext();
+				}
+			},
+			go_to_form: function() {
+				var formName = getNeedle(_this.commandHash.command);
+				if(formName) {
+					var $form = $("form[name*='"+formName+"']");
+					if(!$form.length) {
+						_this.commandHash.speakerText = "No form found with name "+formName;
+						return textKeeper.textConstants.KEEP_QUIET;
+					} else {
+						if($form.length > 1) {
+							setContext(false);
+							_this.commandHash.speakerText = "There are "+$form.length+" choices for the form name "+formName+". Which one to go with?";
+							return textKeeper.textConstants.KEEP_QUIET;
+						} else {
+							_this.commandHash.speakerText = "Focussing on "+$form.attr("name")+" form's first field";
+							$(":tabbable", $form).eq(0).focus();
+							return textKeeper.textConstants.KEEP_QUIET;
+						}
+					}
+				} else {
+					setContext(true);
+					_this.commandHash.speakerText = "Which form?";
+					return textKeeper.textConstants.KEEP_QUIET;
+				}
+			},
+			go_to_combobox: function() {
+				var selection = getNeedle(_this.commandHash.command);
+				if(selection) {
+					var $combos = $("select:contains('"+selection+"')");
+					if(!$combos.length) {
+						_this.commandHash.speakerText = "No combo box found with text "+selection;
+						return textKeeper.textConstants.KEEP_QUIET;
+					} else {
+						if($combos.length > 1) {
+							setContext(false);
+							_this.commandHash.speakerText = "There are "+$combos.length+" choices for the term "+selection+". Which one to go with?";
+							return textKeeper.textConstants.KEEP_QUIET;
+						} else {
+							_this.commandHash.speakerText = "Focussing combo box "+selection;
+							$combos.focus();
+							return textKeeper.textConstants.KEEP_QUIET;
+						}
+					}
+				} else {
+					setContext(true);
+					_this.commandHash.speakerText = "Which combo box?";
+					return textKeeper.textConstants.KEEP_QUIET;
 				}
 			},
 			scroll_top: function() {
@@ -226,7 +303,11 @@ define(["utils/utils", "context/contextManager"], function(utils, ContextManager
 
 		this.executeCommand = function(commandHash) {
 			this.commandHash = commandHash;
-			var speakerCode = this.commandActions[this.commandHash.commandObject.id]();
+			var commandFunction = this.commandActions[this.commandHash.commandObject.id] || this.commandActions["command_invalid"],
+				speakerCode = "";
+			if(typeof commandFunction == "function") {
+				speakerCode = commandFunction();
+			}
 			this.commandHash.speakerCode = speakerCode;
 		}
 
